@@ -1,10 +1,12 @@
 (ns cells.client.main
   (:require [noir.cljs.client.watcher :as watcher]
             [clojure.browser.repl :as repl]
-            [waltz.state :as :state]
+            [monet.canvas :as canvas]
+            [waltz.state :as state]
             [crate.core :as crate])
-  (:use [jayq.core :only [$ bind append]])
-  (:use-macros [crate.macros :only [defpartial]]))
+  (:use [jayq.core :only [$ bind append document-ready]])
+  (:use-macros [crate.macros :only [defpartial]]
+               [waltz.macros :only [in out defstate deftrans]]))
 
 ;;************************************************
 ;; Dev stuff
@@ -17,19 +19,15 @@
 ;; Code
 ;;************************************************
 
+
 (def colors {:off "hsl(0, 0%, 27%)", :on "hsl(60,70%,45%)", :or "hsl(0,70%,45%)",
              :xor "hsl(120,70%,45%)", :line "black"})
 
-(defn set-fill [ctx col] (set! ctx.fillStyle col) ctx)
-(defn set-stroke [ctx col] (set! ctx.strokeStyle (colors col)) ctx)
-(defn stroke [ctx] (.stroke ctx) ctx)
-(defn fill [ctx] (.fill ctx) ctx)
 (set! *print-fn* (fn [& args] (dorun (map #(.log js/console %) args))))
-
 
 (defn make-cells
   ([w h] (make-cells (array (array)) w h))
-  ([a w h]
+  ([a w h] 
      (let [ah (count a), aw (if (> ah 0) (count (aget a 0)) 0)]
        (if (and (== ah h) (== aw w)) a
            (let [ary (array)]
@@ -46,7 +44,6 @@
              ary)))))
 
 
-(def cs (atom (array (array))))
 (def cell-radius 40)
 
 (def cell-width (* cell-radius 2))
@@ -63,7 +60,6 @@
 (defn get-cell-pos [i j] [(* i cell-side) (* cell-height (/ (+ (* 2 j) (mod i 2)) 2))])
 (defn get-corners [x y] (map (fn [cx cy] [(+ x cx) (+ y cy)]) corner-dx corner-dy))
 
-
 (defn get-cell-index [x y]
   (let [ci (Math/floor (/ x cell-side))
         cx (- x (* cell-side ci))
@@ -75,14 +71,16 @@
 
 (defn draw-cell [ctx i j fill-col]
   (let [[x y] (get-cell-pos i j), [[cx cy] & cs :as c] (get-corners x y)]
-    (doto ctx .beginPath (.moveTo cx cy))
-    (doseq [[cx cy] cs] (. ctx (lineTo cx cy)))
-    (doto ctx .closePath .stroke (set-fill fill-col) .fill)))
-
-(defn update-cells [w h] (swap! cs make-cells (/ w cell-height) (/ h cell-height)))
+    (-> ctx canvas/begin-path (canvas/move-to cx cy))
+;    (doto ctx .beginPath (.moveTo cx cy))
+    (doseq [[cx cy] cs]; (. ctx (lineTo cx cy))
+      (canvas/line-to ctx cx cy))
+    (-> ctx canvas/close-path canvas/stroke (canvas/fill-style fill-col) canvas/fill)
+    ))
 
 (defn draw-hexes [canvas cls]
-  (let [ctx (. canvas (getContext "2d"))
+;  (.log js/console (get canvas 0))
+  (let [ctx (canvas/get-context canvas :2d)
         hei (.-length cls)
         wid (.-length (aget cls 0))]
     (loop [j 0]
@@ -93,32 +91,31 @@
             (recur (inc i))))
         (recur (inc j))))))
 
-(def $canvas ($ :#canvas))
-(def canvas (.get $canvas 0))
-
-(defn repaint [] (draw-hexes canvas @cs))
-
-(defn on-resize []
-  (let [$wind ($ js/window), w (.width $wind), h (.height $wind)]
-    (set! canvas.width w)
-    (set! canvas.height h)
-    (update-cells w h)
-    (repaint)))
-
-(defn on-move [e]
-  (let [px (.-pageX e), py (.-pageY e), [i j] (get-cell-index px py), cur (aget (aget @cs j) i)]
-    (aset (aget @cs j) i (if (= :on cur) :off :on))
-    (repaint)))
-
-
 (defn init []
-  (bind ($ js/window) :resize on-resize)
-  (bind $canvas :mousedown (fn [e] (bind $canvas :mousemove on-move)))
-  (bind $canvas :mouseup (fn [e] (.unbind $canvas :mousemove)))
-  (on-resize))
+  (let [$canvas ($ :#canvas)
+        canvas (.get $canvas 0)
+        cls (atom (array (array)))
+        $window ($ js/window)
+        
+        update-cells (fn [w h] (swap! cls make-cells (/ w cell-height) (/ h cell-height)))
+        
+        on-move (fn [e] (let [px (.-pageX e), py (.-pageY e), [i j] (get-cell-index px py), cur (aget (aget @cls j) i)]
+                          (aset (aget @cls j) i (if (= :on cur) :off :on))
+                          (draw-hexes canvas @cls)))
+        
+        on-resize (fn [_] (let [w (.width $window), h (.height $window)]
+                            (set! canvas.width w)
+                            (set! canvas.height h)
+                            (update-cells w h)
+                            (draw-hexes canvas @cls)))]
+    
+    (bind ($ js/window) :resize on-resize)
+    (bind $canvas :mousedown (fn [e] (bind $canvas :mousemove on-move)))
+    (bind $canvas :mouseup (fn [e] (.unbind $canvas :mousemove)))
+    (on-resize nil)))
 
 
-(init)
+(js/$ init)
 
 
 
