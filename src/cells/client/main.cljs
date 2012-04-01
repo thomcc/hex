@@ -1,20 +1,15 @@
 (ns cells.client.main
-  (:require [noir.cljs.client.watcher :as watcher]
-            [clojure.browser.repl :as repl]
-            [monet.canvas :as canvas]
-;            [waltz.state :as state]
-            [crate.core :as crate])
-  (:use [jayq.core :only [$ append bind trigger text attr]])
-  (:use-macros [crate.macros :only [defpartial]]
-               [jayq.macros :only [ready]]
-;               [waltz.macros :only [in out defstate deftrans]]
-               ))
+  (:require [noir.cljs.client.watcher :as watcher] [monet.canvas :as canvas])
+  (:use [jayq.core :only [$ append bind trigger text attr]]))
 
-(repl/connect "http://localhost:9000/repl")
+;(repl/connect "http://localhost:9000/repl")
 (watcher/init)
 (set! *print-fn* #(.log js/console %))
 
 (def colors {:off "hsl(0, 0%, 27%)", :on "hsl(60,70%,45%)"})
+;;
+;; 
+;;
 (def h-rad 20)
 (def h-wid (* h-rad 2))
 (def h-hei (Math/floor (* h-rad (Math/sqrt 3))))
@@ -74,12 +69,17 @@
          loc)))
 
 (def rules (atom [nil false true false true false true]))
-(defn rule [num] (get @rules num))
-
+(def running (atom false))
 (def hexes (atom #{}))
+
+
+(defn rule [num] (get @rules num))
 (def $canvas ($ :#canvas))
 (def canvas (.get $canvas 0))
 (def $window ($ js/window))
+
+(defn wait [ms func] (js* "setTimeout(~{func}, ~{ms})"))
+(defn run [] (when @running (tick) (wait 200 run)))
 
 (defn tick []
   (swap! hexes step rule (/ canvas.width h-rad) (/ canvas.height h-hei))
@@ -95,9 +95,7 @@
         (set! canvas.height (.height $window))
         (draw canvas @hexes)))
 
-(def running (atom false))
-(defn wait [ms func] (js* "setTimeout(~{func}, ~{ms})"))
-(defn run [] (when @running (tick) (wait 200 run)))
+
 
 (bind ($ :span.step) :click tick)
 
