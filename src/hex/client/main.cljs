@@ -5,9 +5,9 @@
   (:use [jayq.core :only [$ append trigger text attr]]
         [crate.core :only [html]]))
 
-(watcher/init)
+;(watcher/init)
 
-(set! *print-fn* #(.log js/console %))
+;(set! *print-fn* #(.log js/console %))
 (def colors {:off "hsl(0, 0%, 27%)", :on "hsl(60,70%,45%)"})
 
 ;; hexagon math
@@ -40,8 +40,8 @@
 
 (defn draw [canvas living]
   (let [context (c/get-context canvas :2d)]
-    (dotimes [j (/ canvas.height h-hei)]
-      (dotimes [i (/ canvas.width h-rad)]
+    (dotimes [j (/ (.-height canvas) h-hei)]
+      (dotimes [i (/ (.-width canvas) h-rad)]
         (let [[[startx starty] & cs] (get-corners (hex-loc i j))]
           (-> context c/begin-path (c/move-to startx starty))
           (doseq [[cx cy] cs] (c/line-to context cx cy))
@@ -85,7 +85,7 @@
 (defn stop [] (reset! running false))
 
 (defn tick []
-  (swap! living step rule (/ canvas.width h-rad) (/ canvas.height h-hei))
+  (swap! living step rule (/ (.-width canvas) h-rad) (/ (.-height canvas) h-hei))
   (draw canvas @living))
 
 (defmulti clicked (fn [$this _] (keyword (attr $this :data-action))))
@@ -122,8 +122,8 @@
 (.on $window "resize"
      (fn [e]
        (.preventDefault e)
-       (set! canvas.width (.width $window))
-       (set! canvas.height (.height $window))
+       (set! (.-width canvas) (.width $window))
+       (set! (.-height canvas) (.height $window))
        (draw canvas @living)))
 
 (.on ($ "[data-action]") "click" (fn [e] (this-as this (.preventDefault e) (clicked ($ this) e))))
