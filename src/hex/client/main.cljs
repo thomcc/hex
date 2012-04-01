@@ -2,12 +2,12 @@
   (:require [noir.cljs.client.watcher :as watcher]
             [clojure.string :as string]
             [monet.canvas :as c])
-  (:use [jayq.core :only [$ append trigger text attr]]
+  (:use [jayq.core :only [$ append trigger text attr bind]]
         [crate.core :only [html]]))
 
 ;(watcher/init)
 
-;(set! *print-fn* #(.log js/console %))
+(set! *print-fn* #(.log js/console %))
 (def colors {:off "hsl(0, 0%, 27%)", :on "hsl(60,70%,45%)"})
 
 ;; hexagon math
@@ -79,7 +79,7 @@
 (def $canvas ($ :#canvas))
 (def canvas (.get $canvas 0))
 (def $window ($ js/window))
-
+(defn get-dim [] [(Math/floor (/ (.width $window) h-rad)), (Math/floor (/ (.height $window) h-hei))])
 (defn wait [ms func] (js* "setTimeout(~{func}, ~{ms})"))
 (defn run [] (when @running (tick) (wait 200 run)))
 (defn start [] (reset! running true) (run))
@@ -95,10 +95,11 @@
 
 (defmethod clicked :randomize [_ _]
   (reset! living #{})
-  (dotimes [j (Math/floor (/ (.height $window) h-hei))]
-    (dotimes [i (Math/floor (/ (.width $window) h-rad))]
-      (when (zero? (rand-int 2))
-        (swap! living conj [i j]))))
+  (let [[w h] (get-dim)]
+    (dotimes [j h]
+      (dotimes [i w]
+        (when (zero? (rand-int 2))
+          (swap! living conj [i j])))))
   (draw canvas @living))
 
 (defmethod clicked :run [$this _]
@@ -111,10 +112,11 @@
      #(let [change (if (@living (hex-at (.-pageX %) (.-pageY %))) disj conj)
             dragged (atom #{})
             on-drag (fn [e] (let [c (hex-at (.-pageX e) (.-pageY e))]
-                       (when-not (@dragged c)
-                         (swap! dragged conj c)
-                         (swap! living change c)
-                         (draw canvas @living))))]
+                              (when-not (@dragged c)
+                                (swap! dragged conj c)
+;                                (.log js/console c)
+                                (swap! living change c)
+                                (draw canvas @living))))]
         (on-drag %)
         (.on $canvas "mousemove" on-drag)))
 
@@ -138,6 +140,14 @@
 
 (trigger $window :resize)
 
+(def glider [[0 0] [0 2] [0 4] [2 2] [3 1] [3 2] [4 2]])
 
+(defn place-glider [x y]
+  (doseq [[gx gy] glider]
+    (let [px (+ (- x (mod x 2)) gx) py (+ y gy)]
+      (swap! living conj [px py])))
+  (draw canvas @living))
 
+(let [[w h] (get-dim), h-2 (/ h 2)]
+  (place-glider (Math/floor (/ w 6)) (Math/floor (/ h 3))))
 
