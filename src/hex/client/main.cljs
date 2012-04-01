@@ -12,7 +12,7 @@
 
 ;; hexagon math
 
-(def h-rad 30)
+(def h-rad 20)
 (def h-wid (* h-rad 2))
 (def h-hei (Math/floor (* h-rad (Math/sqrt 3))))
 (def h-side (* 1.5 h-rad))
@@ -138,16 +138,9 @@
                         (.toggleClass $this "active")
                         (swap! rules update-in [(keyword status) (dec num)] not)))))
 
+
+
+(def pts [[20 7] [21 6] [21 7] [22 7] [24 7] [24 5] [24 9]
+          [10 5] [10 7] [10 9] [13 7] [13 6] [12 7] [14 7]])
+(doseq [[gx gy] pts] (swap! living conj [gx gy]))
 (trigger $window :resize)
-
-(def glider [[0 0] [0 2] [0 4] [2 2] [3 1] [3 2] [4 2]])
-
-(defn place-glider [x y]
-  (doseq [[gx gy] glider]
-    (let [px (+ (- x (mod x 2)) gx) py (+ y gy)]
-      (swap! living conj [px py])))
-  (draw canvas @living))
-
-(let [[w h] (get-dim), h-2 (/ h 2)]
-  (place-glider (Math/floor (/ w 6)) (Math/floor (/ h 3))))
-
