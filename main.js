@@ -5147,13 +5147,13 @@ Nh.prototype.La = Mh;
   zh.call(l, a, "\ufdd0'active");
   return Ih.call(l, c)
 });
-var Oh = V(["\ufdd0'off", "\ufdd0'on"], {"\ufdd0'off":"hsl(0, 0%, 27%)", "\ufdd0'on":"hsl(60,70%,45%)"}), Ph = Math.floor.call(l, 30 * Math.sqrt.call(l, 3));
+var Oh = V(["\ufdd0'off", "\ufdd0'on"], {"\ufdd0'off":"hsl(0, 0%, 27%)", "\ufdd0'on":"hsl(60,70%,45%)"}), Ph = Math.floor.call(l, 20 * Math.sqrt.call(l, 3));
 function Qh(a) {
   var c = N.call(l, a, 0, l), d = N.call(l, a, 1, l);
   return S.call(l, function(a) {
     var f = N.call(l, a, 0, l), a = N.call(l, a, 1, l);
     return T([c + f, d + a])
-  }, T([T([15, 0]), T([45, 0]), T([60, Ph / 2]), T([45, Ph]), T([15, Ph]), T([0, Ph / 2])]))
+  }, T([T([10, 0]), T([30, 0]), T([40, Ph / 2]), T([30, Ph]), T([10, Ph]), T([0, Ph / 2])]))
 }
 function Rh(a) {
   var c = N.call(l, a, 0, l), d = N.call(l, a, 1, l);
@@ -5163,16 +5163,16 @@ function Rh(a) {
   }, Df.call(l, 6))
 }
 function Sh(a, c) {
-  return T([45 * a, Ph * ((2 * c + a % 2) / 2)])
+  return T([30 * a, Ph * ((2 * c + a % 2) / 2)])
 }
 function Th(a, c) {
-  var d = Math.floor.call(l, a / 45), e = a - 45 * d, f = c - d % 2 * (Ph / 2), h = Math.floor.call(l, f / Ph), f = f - Ph * h;
-  return v(e > 30 * Math.abs.call(l, 0.5 - f / Ph)) ? T([d, h]) : T([d - 1, h + (d % 2 - (v(f < Ph / 2) ? 1 : 0))])
+  var d = Math.floor.call(l, a / 30), e = a - 30 * d, f = c - d % 2 * (Ph / 2), h = Math.floor.call(l, f / Ph), f = f - Ph * h;
+  return v(e > 20 * Math.abs.call(l, 0.5 - f / Ph)) ? T([d, h]) : T([d - 1, h + (d % 2 - (v(f < Ph / 2) ? 1 : 0))])
 }
 function Uh(a, c) {
   for(var d = kh.call(l, a, "\ufdd0'2d"), e = a.height / Ph, f = 0;;) {
     if(v(f < e)) {
-      for(var h = a.width / 30, j = 0;;) {
+      for(var h = a.width / 20, j = 0;;) {
         if(v(j < h)) {
           var k = Qh.call(l, Sh.call(l, j, f)), n = N.call(l, k, 0, l), s = N.call(l, n, 0, l), n = N.call(l, n, 1, l), k = ve.call(l, k, 1);
           qh.call(l, lh.call(l, d), s, n);
@@ -5249,7 +5249,7 @@ function Yh(a, c, d, e) {
 }
 var Zh = Pf.call(l, m), $h = Pf.call(l, Af([])), ai = vh.call(l, "\ufdd0'#canvas"), bi = ai.get(0), ci = vh.call(l, window);
 function di() {
-  return T([Math.floor.call(l, ci.width() / 30), Math.floor.call(l, ci.height() / Ph)])
+  return T([Math.floor.call(l, ci.width() / 20), Math.floor.call(l, ci.height() / Ph)])
 }
 function ei(a, c) {
   return setTimeout(c, a)
@@ -5265,7 +5265,7 @@ function ji() {
   return Qf.call(l, Zh, m)
 }
 function gi() {
-  X.call(l, $h, Yh, Wh, bi.width / 30, bi.height / Ph);
+  X.call(l, $h, Yh, Wh, bi.width / 20, bi.height / Ph);
   return Uh.call(l, bi, Y.call(l, $h))
 }
 var ki = function() {
@@ -5337,25 +5337,22 @@ vh.call(l, "\ufdd0'.num").on("click", function(a) {
   c.toggleClass("active");
   return X.call(l, Vh, gf, T([ze.call(l, e), d - 1]), K)
 });
+var li = G.call(l, T([T([20, 7]), T([21, 6]), T([21, 7]), T([22, 7]), T([24, 7]), T([24, 5]), T([24, 9]), T([10, 5]), T([10, 7]), T([10, 9]), T([13, 7]), T([13, 6]), T([12, 7]), T([14, 7])]));
+if(v(li)) {
+  var mi = H.call(l, li);
+  N.call(l, mi, 0, l);
+  N.call(l, mi, 1, l);
+  for(var ni = mi, oi = li;;) {
+    var pi = ni, qi = N.call(l, pi, 0, l), ri = N.call(l, pi, 1, l), si = oi;
+    X.call(l, $h, L, T([qi, ri]));
+    var ti = J.call(l, si);
+    if(v(ti)) {
+      var ui = ti, vi = H.call(l, ui), wi = ui, ni = vi, oi = wi
+    }else {
+      break
+    }
+  }
+}
 (function(a, c) {
   return a.trigger(W.call(l, c))
 }).call(l, ci, "\ufdd0'resize");
-var li = T([T([0, 0]), T([0, 2]), T([0, 4]), T([2, 2]), T([3, 1]), T([3, 2]), T([4, 2])]), mi = di.call(l), ni = N.call(l, mi, 0, l), oi = N.call(l, mi, 1, l);
-(function(a, c) {
-  var d = G.call(l, li);
-  if(v(d)) {
-    var e = H.call(l, d);
-    N.call(l, e, 0, l);
-    for(N.call(l, e, 1, l);;) {
-      var f = e, e = N.call(l, f, 0, l), f = N.call(l, f, 1, l);
-      X.call(l, $h, L, T([a - a % 2 + e, c + f]));
-      d = J.call(l, d);
-      if(v(d)) {
-        e = d, d = H.call(l, e), f = e, e = d, d = f
-      }else {
-        break
-      }
-    }
-  }
-  return Uh.call(l, bi, Y.call(l, $h))
-}).call(l, Math.floor.call(l, ni / 6), Math.floor.call(l, oi / 3));
