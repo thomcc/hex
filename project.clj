@@ -1,6 +1,7 @@
 (defproject cells "0.1.0-SNAPSHOT"
   :description "FIXME: write this!"
   :url "http://exampl.com/FIXME"
+  :plugins [[lein-cljsbuild "0.1.3"]]
   :dependencies [[org.clojure/clojure "1.3.0"]
                  [noir-cljs "0.2.5"]
                  [jayq "0.1.0-alpha3"]

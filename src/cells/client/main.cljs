@@ -2,48 +2,51 @@
   (:require [noir.cljs.client.watcher :as watcher]
             [clojure.browser.repl :as repl]
             [monet.canvas :as canvas]
-            [waltz.state :as state]
+;            [waltz.state :as state]
             [crate.core :as crate])
-  (:use [jayq.core :only [$ append bind trigger]])
+  (:use [jayq.core :only [$ append bind trigger text attr]])
   (:use-macros [crate.macros :only [defpartial]]
                [jayq.macros :only [ready]]
-               [waltz.macros :only [in out defstate deftrans]]))
+;               [waltz.macros :only [in out defstate deftrans]]
+               ))
 
+(repl/connect "http://localhost:9000/repl")
 (watcher/init)
 (set! *print-fn* #(.log js/console %))
 
-(def colors {:off "hsl(0, 0%, 27%)", :on "hsl(60,70%,45%)", :or "hsl(0,70%,45%)", :xor "hsl(120,70%,45%)"})
+(def colors {:off "hsl(0, 0%, 27%)", :on "hsl(60,70%,45%)"})
+(def h-rad 20)
+(def h-wid (* h-rad 2))
+(def h-hei (Math/floor (* h-rad (Math/sqrt 3))))
+(def h-side (* 1.5 h-rad))
+(def corner-delta [[(/ h-rad 2) 0] [h-side 0] [h-wid (/ h-hei 2)]
+                   [h-side h-hei] [(/ h-rad 2) h-hei] [0 (/ h-hei 2)]])
 
-(defn get-cell [cm i j] (or (cm [i j]) :off)) ; treat nil same as :off
+(defn get-corners [x y] (map (fn [[cx cy]] [(+ x cx) (+ y cy)]) corner-delta))
+; n-delta is [x [y if x is even, y if x is odd]]
+(def n-delta [[0 [-1 -1]] [1 [-1 0]] [1 [0 1]] [0 [1 1]] [-1 [0 1]] [-1 [-1 0]]])
 
-(def next-cell {:off :on, :on :xor, :xor :or, :or :off})
+;; (defn ns-selector [which]
+;;   (fn [[i j]] (map #(let [[ndx ndy] (n-delta %)] [(+ i ndx) (+ j (ndy (mod i 2)))]) which)))
+;; (def outputs (ns-selector [0 2 4]))
+;; (def neighbors (ns-selector (range 6)))
+;; (def inputs (ns-selector [1 3 5]))
 
-(def cell-radius 40)
-(def cell-width (* cell-radius 2))
-(def cell-height (Math/floor (* cell-radius (Math/sqrt 3))))
-(def cell-side (* 1.5 cell-radius))
+(defn neighbors [[i j]]
+  (map #(let [[ndx ndy] (n-delta %)] [(+ i ndx) (+ j (ndy (mod i 2)))]) (range 6)))
 
-(def corner-dx [(/ cell-radius 2), cell-side cell-width cell-side (/ cell-radius 2) 0])
-(def corner-dy [0 0 (/ cell-height 2) cell-height cell-height (/ cell-height 2)])
-(defn get-corners [x y] (map (fn [cx cy] [(+ x cx) (+ y cy)]) corner-dx corner-dy))
-
-(def neighbor-dx [0 1 1 0 -1 -1])
-(def neighbor-dy [[-1 -1] [-1 0] [0 1] [1 1] [0 1] [-1 0]]); [x is even, x is odd]
-
-(defn neighbor [i j n] [(+ i (neighbor-dx n)) (+ j ((neighbor-dy n) (mod i 2)))])
-(defn ns-selector [which] (fn [i j] (map #(neighbor i j %) which)))
-
-(def neighbors (ns-selector (range 6)))
-(def outputs (ns-selector [0 2 4]))
-(def inputs (ns-selector [1 3 5]))
-
-(defn hex-loc [i j] [(* i cell-side) (* cell-height (/ (+ (* 2 j) (mod i 2)) 2))])
+(defn hex-loc [i j] [(* i h-side) (* h-hei (/ (+ (* 2 j) (mod i 2)) 2))])
 
 (defn hex-at [x y]
-  (let [ci (Math/floor (/ x cell-side)),   cx (- x (* cell-side ci)), ty (- y (* (mod ci 2) (/ cell-height 2))),
-        cj (Math/floor (/ ty cell-height)) cy (- ty (* cell-height cj))]
-    (if (> cx (* cell-radius (Math/abs (- 0.5 (/ cy cell-height))))) [ci cj]
-        [(dec ci), (+ cj (- (mod ci 2) (if (< cy (/ cell-height 2)) 1 0)))])))
+  (let [ci (Math/floor (/ x h-side))
+        cx (- x (* h-side ci))
+        ty (- y (* (mod ci 2) (/ h-hei 2)))
+        cj (Math/floor (/ ty h-hei))
+        cy (- ty (* h-hei cj))]
+    (if (> cx (* h-rad (Math/abs (- 0.5 (/ cy h-hei)))))
+      [ci cj]
+      [(dec ci), (+ cj (- (mod ci 2)
+                          (if (< cy (/ h-hei 2)) 1 0)))])))
 
 (defn draw-cell [ctx i j fill-col]
   (let [[x y] (hex-loc i j), [[cx cy] & cs] (get-corners x y)]
@@ -51,27 +54,68 @@
     (doseq [[cx cy] cs] (canvas/line-to ctx cx cy))
     (-> ctx canvas/close-path canvas/stroke (canvas/fill-style fill-col) canvas/fill)))
 
-(defn draw [canvas cellmap]
+(defn draw [canvas hexes]
   (let [ctx (canvas/get-context canvas :2d)
-        hei (/ canvas.height cell-height)
-        wid (/ canvas.width cell-height)]
+        hei (/ canvas.height h-hei)
+        wid (/ canvas.width h-rad)]
     (loop [j 0]
       (when (< j hei)
         (loop [i 0]
           (when (< i wid)
-            (draw-cell ctx i j (colors (get-cell cellmap i j)))
+            (draw-cell ctx i j (if (hexes [i j]) (colors :on) (colors :off)))
             (recur (inc i))))
         (recur (inc j))))))
 
-(defn toggle-neighbors [cm [i j]]
-  (reduce (fn [cm [ni nj :as p]] (assoc cm p (next-cell (get-cell cm ni nj)))) cm (inputs i j)))
+(defn okay? [[x y] w h] (not (or (neg? x) (neg? y) (> x w) (> y h))))
 
-(let [$canvas ($ :#canvas), canvas (.get $canvas 0), $window ($ js/window), hexes (atom {})]
-  (bind $canvas :click (fn [e] (let [pos (hex-at (.-pageX e) (.-pageY e)),current (apply get-cell @hexes pos)]
-                                 (swap! hexes assoc pos (next-cell current))
-                                 (swap! hexes toggle-neighbors pos)
-                                 (draw canvas @hexes))))
-  (bind $window :resize (fn [_] (do (set! canvas.width (.width $window))
-                                    (set! canvas.height (.height $window))
-                                    (draw canvas @hexes))))
-  (trigger $window :resize))
+(defn step [cm rule w h] ; needs to take w and h because cljs sets are _slooooow_
+  (set (for [[loc n] (frequencies (mapcat neighbors cm))
+             :when (and (okay? loc w h) (rule n (cm loc)))]
+         loc)))
+
+(def rules (atom [nil false true false true false true]))
+(defn rule [num] (get @rules num))
+
+(def hexes (atom #{}))
+(def $canvas ($ :#canvas))
+(def canvas (.get $canvas 0))
+(def $window ($ js/window))
+
+(defn tick []
+  (swap! hexes step rule (/ canvas.width h-rad) (/ canvas.height h-hei))
+  (draw canvas @hexes))
+
+(bind $canvas :click (fn [e] (let [p (hex-at (.-pageX e) (.-pageY e))]
+                               (swap! hexes (if (@hexes p) disj conj) p)
+                               (draw canvas @hexes))))
+
+(bind $window :resize
+      (fn [_]
+        (set! canvas.width (.width $window))
+        (set! canvas.height (.height $window))
+        (draw canvas @hexes)))
+
+(def running (atom false))
+(defn wait [ms func] (js* "setTimeout(~{func}, ~{ms})"))
+(defn run [] (when @running (tick) (wait 200 run)))
+
+(bind ($ :span.step) :click tick)
+
+(bind ($ :span.run) :click
+      (fn [] (let [$this ($ (js* "this")), active? (.hasClass $this "active")]
+               (-> (.toggleClass $this "active") (text (if active? "Run" "Stop")))
+               (reset! running (not active?))
+               (run))))
+(bind ($ :span.num) :click
+      (fn [] (let [$this ($ (js* "this")), num (attr $this :data-num)]
+               (.toggleClass $this "active")
+               (swap! rules update-in [num] not))))
+
+
+(trigger $window :resize)
+
+
+
+
+
+
