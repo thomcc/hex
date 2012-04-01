@@ -5212,7 +5212,7 @@ function Wh(a, c) {
   }, Cf.call(l, 1, 7))])
 }, V(["\ufdd0'alive", "\ufdd0'dead"])), V(["\ufdd0'ul.command", T.call(l, function(a) {
   return V(["\ufdd0'li", W(["\ufdd0'data-action"], {"\ufdd0'data-action":X.call(l, a)}), hg.call(l, X.call(l, a))])
-}, V(["\ufdd0'run", "\ufdd0'step", "\ufdd0'randomize", "\ufdd0'clear"]))])]), V(["\ufdd0'canvas#canvas"])])));
+}, V(["\ufdd0'run", "\ufdd0'step", "\ufdd0'randomize", "\ufdd0'clear"]))]), V(["\ufdd0'ul", V(["\ufdd0'li", V(["\ufdd0'a", W(["\ufdd0'href", "\ufdd0'target"], {"\ufdd0'href":"https://github.com/thomcc/hex", "\ufdd0'target":"_blank"}), "Source"])])])]), V(["\ufdd0'canvas#canvas"])])));
 function Xh(a, c, d) {
   var e = O.call(l, a, 0, l), f = O.call(l, a, 1, l);
   return L.call(l, function() {
