@@ -60,7 +60,8 @@
                                               (range 1 7))])
                                       [:alive :dead])
                     [:ul.command (map (fn [cmd] [:li {:data-action (name cmd)} (string/capitalize (name cmd))])
-                                      [:run :step :randomize :clear])]]
+                                      [:run :step :randomize :clear])]
+                    [:ul [:li [:a {:href "https://github.com/thomcc/hex" :target "_blank"} "Source"]]]]
                    [:canvas#canvas]])))
 
 ;; cellular automata
