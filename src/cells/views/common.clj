@@ -3,11 +3,11 @@
   (:use [noir.core :only [defpartial]]
         [hiccup.page-helpers :only [include-css html5]]))
 
-(defpartial layout [& content]
-            (html5
-              [:head
-               [:title "cells"]
-               (include-css "/css/reset.css")
-               (include-css "/css/default.css")]
-              [:body content
-               (cljs/include-scripts :with-jquery)]))
+(defpartial layout [title css]
+  (html5
+   [:head
+    [:title title]
+    (include-css "/css/reset.css")
+    (include-css "/css/default.css")
+    (include-css (str "/css/" css))]
+   [:body (cljs/include-scripts :with-jquery)]))

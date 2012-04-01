@@ -1,74 +1,12 @@
-body { padding: 0; background: #454545; color: #b2b2b2; font-family: "Helvetica Neue", "Verdana", sans-serif;}
-a {text-decoration:none; color: #b2b2b2; }
-.clearfix:before, .clearfix:after { content:""; display:table;}
-.clearfix:after{ clear: both}
-#canvas {
-  z-index: -1;
-}
-
-#control {
-  position: fixed;
-  top: 15px;
-  left: 30px;
-  border-radius: 5px;
-  background: hsla(0,0%,66%,40%)
+body {
+  padding: 0; 
+  background: #454545; 
+  color: #b2b2b2; 
+  font-family: "Helvetica Neue", "Verdana", sans-serif;
 }
 
 
-
-#control div span, #run {
-  background-color: hsla(210, 50%, 30%, 0.9);
-  text-align: center;
-  border: 1px solid rgba(0,0,0,0.1);
-  display: inline-block;
-  margin: 4px 0;
-  padding: 3px 8px;
-  -webkit-transition: all 0.5s ease-in-out;
-  -moz-transition: all 0.5s ease-in-out;
-  -o-transition: all 0.5s ease-in-out;
-  -ms-transition: all 0.5s ease-in-out;
-  transition: all 0.5s ease-in-out;
-  margin-right: -1px;
-}
-#control div span:first-child {
-  -webkit-border-top-left-radius: 5px;
-  -moz-border-radius-topleft: 5px;
-  border-top-left-radius: 5px;
-  -webkit-border-bottom-left-radius: 5px;
-  -moz-border-radius-bottomleft: 5px;
-  border-bottom-left-radius: 5px;
-}
-#control div span.head {
-  width: 100px;
-}
-#control div span:last-child {
-  -webkit-border-top-right-radius: 5px;
-  -moz-border-radius-topright: 5px;
-  border-top-right-radius: 5px;
-  -webkit-border-bottom-right-radius: 5px;
-  -moz-border-radius-bottomright: 5px;
-  border-bottom-right-radius: 5px;
-}
-
-#control div {
-  display: block;
-}
-#control div span:hover {
-  background-color: hsla(210, 50%, 45%,0.8);  
-}
-
-#control div span.active {
-  background-color: hsla(60, 50%, 35%, 0.8);
-  color: hsl(60, 20%, 20%);
-}
-
-#control div span.active:hover {
-  background-color: hsla(60,50%,50%,0.8);
-  color: hsl(60,20%,20%);
-}
-
-#run {
-  display: block;
-  width: 300px;
-  height: 40px;
+a {
+  text-decoration:none; 
+  color: #b2b2b2; 
 }
