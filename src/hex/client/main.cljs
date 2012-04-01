@@ -1,4 +1,4 @@
-(ns cells.client.main
+(ns hex.client.main
   (:require [noir.cljs.client.watcher :as watcher]
             [clojure.string :as string]
             [monet.canvas :as c])

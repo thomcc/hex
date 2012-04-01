@@ -1,17 +1,14 @@
-# cells
+# [hex]
 
-A website written with Noir and ClojureScript.
+A hexagonal cellular automata simulator written in ClojureScript. Uses
+Noir (specifically noir-cljs) for its the back-end, because I'm really
+just hilariously bad at getting ClojureScript to work on it's own.
 
-## Usage
 
-```bash
-lein deps
-lein run
-```
 
 ## License
 
-Copyright (C) 2012 FIXME
+Copyright (C) 2012 Thom Chiovoloni
 
 Distributed under the Eclipse Public License, the same as Clojure.
 

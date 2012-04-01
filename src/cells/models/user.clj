@@ -1,1 +1,0 @@
-(ns cells.models.user)

@@ -1,4 +1,4 @@
-(ns cells.views.common
+(ns hex.views.common
   (:require [noir.cljs.core :as cljs])
   (:use [noir.core :only [defpartial]]
         [hiccup.page-helpers :only [include-css html5]]))

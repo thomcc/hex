@@ -1,8 +1,8 @@
-(ns cells.server
+(ns hex.server
   (:require [noir.server :as server]
             [noir.cljs.core :as cljs]))
 
-(server/load-views-ns 'cells.views)
+(server/load-views-ns 'hex.views)
 (def cljs-options {:advanced {:externs ["externs/jquery.js"]}})
 
 (defn -main [& m]
