@@ -1,11 +1,10 @@
 (ns hex.client.main
-  (:require [noir.cljs.client.watcher :as watcher]
-            [clojure.string :as string]
+  (:require [clojure.string :as string]
             [monet.canvas :as c])
-  (:use [jayq.core :only [$ append trigger text attr bind]]
+  (:use [jayq.core :only [$ append trigger text attr bind on off]]
         [crate.core :only [html]]))
 
-;(watcher/init)
+(defn on* [elem evt h] (on elem evt nil nil h))
 
 (set! *print-fn* #(.log js/console %))
 (def colors {:off "hsl(0, 0%, 27%)", :on "hsl(60,70%,45%)"})
@@ -19,8 +18,8 @@
 
 (defn get-corners [[x y]]
   (map (fn [[cx cy]] [(+ x cx) (+ y cy)])
-       [[(/ h-rad 2) 0] [h-side 0]          [h-wid  (/ h-hei 2)]
-        [h-side h-hei]  [(/ h-rad 2) h-hei] [0 (/ h-hei 2)]]))
+       [[(/ h-rad 2) 0] [h-side 0] [h-wid  (/ h-hei 2)]
+        [h-side h-hei] [(/ h-rad 2) h-hei] [0 (/ h-hei 2)]]))
 
 (defn neighbors [[i j]]
   (map (fn [neighbor]
@@ -68,6 +67,7 @@
 
 (defn okay? [[x y] w h] (not (or (neg? x) (neg? y) (> x w) (> y h))))
 
+
 (defn step [cm rule w h]
   (set (for [[loc n] (frequencies (mapcat neighbors cm))
              :when (and (okay? loc w h) (rule n (cm loc)))]
@@ -80,8 +80,16 @@
 (def canvas (.get $canvas 0))
 (def $window ($ js/window))
 (defn get-dim [] [(Math/floor (/ (.width $window) h-rad)), (Math/floor (/ (.height $window) h-hei))])
-(defn wait [ms func] (js* "setTimeout(~{func}, ~{ms})"))
-(defn run [] (when @running (tick) (wait 200 run)))
+;; (defn wait [ms func] (js* "setTimeout(~{func}, ~{ms})"))
+
+(defn run []
+  (when @running
+    (let [t (.getTime (js/Date.))]
+      (tick)
+      (let [dt (- (.getTime (js/Date.)) t)]
+        (prn (str "took " dt " ms."))
+        (js/setTimeout run (max (- 200 dt) 0))))))
+
 (defn start [] (reset! running true) (run))
 (defn stop [] (reset! running false))
 
@@ -108,30 +116,29 @@
         (text (if active? "Run" "Stop")))
     (if-not active? (start) (stop))))
 
-(.on $canvas "mousedown"
-     #(let [change (if (@living (hex-at (.-pageX %) (.-pageY %))) disj conj)
+(on* $canvas :mousedown
+     #(let [change (if (get @living (hex-at (.-pageX %) (.-pageY %))) disj conj)
             dragged (atom #{})
             on-drag (fn [e] (let [c (hex-at (.-pageX e) (.-pageY e))]
                               (when-not (@dragged c)
                                 (swap! dragged conj c)
-;                                (.log js/console c)
                                 (swap! living change c)
                                 (draw canvas @living))))]
         (on-drag %)
-        (.on $canvas "mousemove" on-drag)))
+        (on* $canvas :mousemove on-drag)))
 
-(.on $canvas "mouseup" #(.off $canvas "mousemove"))
+(on* $canvas :mouseup #(off $canvas :mousemove nil))
 
-(.on $window "resize"
+(on* $window :resize
      (fn [e]
        (.preventDefault e)
        (set! (.-width canvas) (.width $window))
        (set! (.-height canvas) (.height $window))
        (draw canvas @living)))
 
-(.on ($ "[data-action]") "click" (fn [e] (this-as this (.preventDefault e) (clicked ($ this) e))))
+(on* ($ "[data-action]") :click (fn [e] (this-as this (.preventDefault e) (clicked ($ this) e))))
 
-(.on ($ :.num) "click"
+(on* ($ :.num) :click
      (fn [e] (this-as this
                       (let [$this ($ this), num (attr $this :data-num), status (attr $this :data-status)]
                         (.preventDefault e)

@@ -1,1 +1,0 @@
-(ns hex.models.user)
